@@ -1,4 +1,4 @@
-javascript
+
 /* =====================================================
    K.W.CENTER SCORE WEBSITE
    SCRIPT.JS
