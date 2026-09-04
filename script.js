@@ -914,12 +914,869 @@ function subjectCard(
    PRINT REPORT
 ===================================================== */
 
+/* =====================================================
+   PRINT REPORT - A4 ONE PAGE
+===================================================== */
+
 function printReport() {
 
-    window.print();
+    if (!currentResultData) {
+        alert("กรุณาค้นหาคะแนนก่อนพิมพ์");
+        return;
+    }
+
+    const data = currentResultData;
+
+    const student = data.student;
+    const three = data.three_subjects;
+    const five = data.five_subjects;
+    const statistics = data.statistics;
+
+    /* ---------------------------------------------
+       ชื่อการสอบ
+    --------------------------------------------- */
+
+    const examOption =
+        examSelect.options[
+            examSelect.selectedIndex
+        ];
+
+    const examName =
+        examOption
+            ? examOption.textContent
+            : "การทดสอบวัดระดับ";
+
+
+    /* ---------------------------------------------
+       วันที่พิมพ์
+    --------------------------------------------- */
+
+    const today = new Date();
+
+    const printDate =
+        today.toLocaleDateString(
+            "th-TH",
+            {
+                year: "numeric",
+                month: "long",
+                day: "numeric"
+            }
+        );
+
+
+    /* ---------------------------------------------
+       URL โลโก้
+       ดึง LOGO.png จาก GitHub Pages
+    --------------------------------------------- */
+
+    const logoUrl =
+        new URL(
+            "LOGO.png",
+            window.location.href
+        ).href;
+
+
+    /* ---------------------------------------------
+       ตารางวิชา
+    --------------------------------------------- */
+
+    function subjectRow(
+        name,
+        score,
+        stat
+    ) {
+
+        return `
+            <tr>
+
+                <td class="subject-name">
+                    ${escapeHtml(name)}
+                </td>
+
+                <td>
+                    ${score}
+                </td>
+
+                <td>
+                    ${stat.full}
+                </td>
+
+                <td>
+                    ${stat.max}
+                </td>
+
+                <td>
+                    ${stat.min}
+                </td>
+
+                <td>
+                    ${stat.average}
+                </td>
+
+            </tr>
+        `;
+    }
+
+
+    /* ---------------------------------------------
+       สร้างหน้าพิมพ์
+    --------------------------------------------- */
+
+    const reportHTML = `
+
+<!DOCTYPE html>
+
+<html lang="th">
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>
+รายงานผลคะแนน - ${escapeHtml(student.name)}
+</title>
+
+<style>
+
+@page {
+    size: A4 portrait;
+    margin: 8mm;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    background: white;
+}
+
+body {
+
+    font-family:
+        "Tahoma",
+        "Arial",
+        sans-serif;
+
+    color: #172b4d;
+
+    font-size: 9px;
+
+    line-height: 1.35;
+}
+
+.report {
+
+    width: 100%;
+
+    max-width: 194mm;
+
+    margin: 0 auto;
+}
+
+
+/* =========================================
+   HEADER
+========================================= */
+
+.header {
+
+    text-align: center;
+
+    border-bottom:
+        2px solid #0756c9;
+
+    padding-bottom: 6px;
+
+    margin-bottom: 8px;
+}
+
+.logo {
+
+    width: 42px;
+    height: 42px;
+
+    object-fit: contain;
+
+    display: block;
+
+    margin: 0 auto 3px auto;
+}
+
+.school-name {
+
+    font-size: 17px;
+
+    font-weight: bold;
+
+    color: #0756c9;
+}
+
+.school-sub {
+
+    font-size: 9px;
+
+    color: #66758a;
+}
+
+.report-title {
+
+    font-size: 13px;
+
+    font-weight: bold;
+
+    margin-top: 5px;
+}
+
+.exam-name {
+
+    font-size: 8.5px;
+
+    color: #66758a;
+
+    margin-top: 1px;
+}
+
+
+/* =========================================
+   STUDENT
+========================================= */
+
+.student-info {
+
+    display: grid;
+
+    grid-template-columns:
+        1fr 100px;
+
+    gap: 8px;
+
+    border:
+        1px solid #dce5f0;
+
+    border-radius: 5px;
+
+    padding: 7px 9px;
+
+    margin-bottom: 8px;
+}
+
+.student-label {
+
+    font-size: 7.5px;
+
+    color: #7b8798;
+}
+
+.student-name {
+
+    font-size: 12px;
+
+    font-weight: bold;
+
+    margin-top: 1px;
+}
+
+.student-class {
+
+    text-align: right;
+}
+
+.student-class-value {
+
+    font-size: 11px;
+
+    font-weight: bold;
+}
+
+
+/* =========================================
+   SECTION
+========================================= */
+
+.section {
+
+    margin-bottom: 8px;
+}
+
+.section-title {
+
+    font-size: 10px;
+
+    font-weight: bold;
+
+    color: #0756c9;
+
+    border-left:
+        3px solid #0756c9;
+
+    padding-left: 5px;
+
+    margin-bottom: 4px;
+}
+
+
+/* =========================================
+   TABLE
+========================================= */
+
+table {
+
+    width: 100%;
+
+    border-collapse: collapse;
+
+    table-layout: fixed;
+}
+
+th {
+
+    background: #eef5ff;
+
+    color: #28476d;
+
+    font-weight: bold;
+
+    font-size: 8px;
+}
+
+th,
+td {
+
+    border:
+        1px solid #d9e2ed;
+
+    padding:
+        3px 4px;
+
+    text-align: center;
+
+    font-size: 8px;
+}
+
+td.subject-name {
+
+    text-align: left;
+
+    font-weight: 500;
+
+    width: 30%;
+}
+
+.total-row {
+
+    background: #f6f9fd;
+
+    font-weight: bold;
+}
+
+.total-row td {
+
+    color: #0756c9;
+}
+
+
+/* =========================================
+   SUMMARY
+========================================= */
+
+.summary {
+
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap: 6px;
+
+    margin-top: 4px;
+}
+
+.summary-box {
+
+    border:
+        1px solid #dce5f0;
+
+    border-radius: 5px;
+
+    padding: 4px;
+
+    text-align: center;
+}
+
+.summary-label {
+
+    font-size: 7px;
+
+    color: #7b8798;
+}
+
+.summary-value {
+
+    font-size: 12px;
+
+    font-weight: bold;
+
+    color: #0756c9;
+
+    margin-top: 1px;
+}
+
+.summary-rank {
+
+    color: #172b4d;
+}
+
+
+/* =========================================
+   FOOTER
+========================================= */
+
+.footer {
+
+    margin-top: 8px;
+
+    padding-top: 5px;
+
+    border-top:
+        1px solid #dce5f0;
+
+    display: flex;
+
+    justify-content:
+        space-between;
+
+    font-size: 7px;
+
+    color: #7b8798;
+}
+
+
+/* =========================================
+   PRINT
+========================================= */
+
+@media print {
+
+    body {
+
+        -webkit-print-color-adjust:
+            exact;
+
+        print-color-adjust:
+            exact;
+    }
+
+    .report {
+
+        page-break-after:
+            avoid;
+    }
+
+    .section {
+
+        page-break-inside:
+            avoid;
+    }
+
+    table {
+
+        page-break-inside:
+            avoid;
+    }
 
 }
 
+</style>
+
+</head>
+
+
+<body>
+
+
+<div class="report">
+
+
+    <!-- =====================================
+         HEADER
+    ====================================== -->
+
+    <div class="header">
+
+        <img
+            class="logo"
+            src="${logoUrl}"
+            alt="K.W.CENTER"
+        >
+
+        <div class="school-name">
+            K.W.CENTER
+        </div>
+
+        <div class="school-sub">
+            โรงเรียนกวดวิชาแก่นวิทย์
+        </div>
+
+        <div class="report-title">
+            รายงานผลคะแนน
+        </div>
+
+        <div class="exam-name">
+            ${escapeHtml(examName)}
+        </div>
+
+    </div>
+
+
+    <!-- =====================================
+         STUDENT
+    ====================================== -->
+
+    <div class="student-info">
+
+        <div>
+
+            <div class="student-label">
+                ชื่อนักเรียน
+            </div>
+
+            <div class="student-name">
+                ${escapeHtml(student.name)}
+            </div>
+
+        </div>
+
+
+        <div class="student-class">
+
+            <div class="student-label">
+                ระดับชั้น
+            </div>
+
+            <div class="student-class-value">
+                ${escapeHtml(student.class)}
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================
+         3 SUBJECTS
+    ====================================== -->
+
+    <div class="section">
+
+        <div class="section-title">
+            คะแนน 3 วิชา
+        </div>
+
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>รายวิชา</th>
+                    <th>คะแนน</th>
+                    <th>เต็ม</th>
+                    <th>สูงสุด</th>
+                    <th>ต่ำสุด</th>
+                    <th>เฉลี่ย</th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                ${subjectRow(
+                    "คณิตศาสตร์",
+                    three.math,
+                    statistics.math
+                )}
+
+                ${subjectRow(
+                    "วิทยาศาสตร์",
+                    three.science,
+                    statistics.science
+                )}
+
+                ${subjectRow(
+                    "ภาษาอังกฤษ",
+                    three.english,
+                    statistics.english
+                )}
+
+
+                <tr class="total-row">
+
+                    <td>
+                        รวม 3 วิชา
+                    </td>
+
+                    <td>
+                        ${three.total}
+                    </td>
+
+                    <td>
+                        ${three.full}
+                    </td>
+
+                    <td colspan="2">
+                        -
+                    </td>
+
+                    <td>
+                        ${statistics.three_subjects.average}
+                    </td>
+
+                </tr>
+
+            </tbody>
+
+        </table>
+
+
+        <div class="summary">
+
+            <div class="summary-box">
+
+                <div class="summary-label">
+                    ร้อยละ
+                </div>
+
+                <div class="summary-value">
+                    ${three.percent}%
+                </div>
+
+            </div>
+
+
+            <div class="summary-box">
+
+                <div class="summary-label">
+                    อันดับ
+                </div>
+
+                <div class="summary-value summary-rank">
+                    ${three.rank}
+                    / ${three.total_students}
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================
+         5 SUBJECTS
+    ====================================== -->
+
+    <div class="section">
+
+        <div class="section-title">
+            คะแนน 5 วิชา
+        </div>
+
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>รายวิชา</th>
+                    <th>คะแนน</th>
+                    <th>เต็ม</th>
+                    <th>สูงสุด</th>
+                    <th>ต่ำสุด</th>
+                    <th>เฉลี่ย</th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+
+                ${subjectRow(
+                    "คณิตศาสตร์",
+                    five.math,
+                    statistics.math
+                )}
+
+                ${subjectRow(
+                    "วิทยาศาสตร์",
+                    five.science,
+                    statistics.science
+                )}
+
+                ${subjectRow(
+                    "ภาษาอังกฤษ",
+                    five.english,
+                    statistics.english
+                )}
+
+                ${subjectRow(
+                    "ภาษาไทย",
+                    five.thai,
+                    statistics.thai
+                )}
+
+                ${subjectRow(
+                    "สังคมศึกษา",
+                    five.social,
+                    statistics.social
+                )}
+
+
+                <tr class="total-row">
+
+                    <td>
+                        รวม 5 วิชา
+                    </td>
+
+                    <td>
+                        ${five.total}
+                    </td>
+
+                    <td>
+                        ${five.full}
+                    </td>
+
+                    <td colspan="2">
+                        -
+                    </td>
+
+                    <td>
+                        ${statistics.five_subjects.average}
+                    </td>
+
+                </tr>
+
+            </tbody>
+
+        </table>
+
+
+        <div class="summary">
+
+            <div class="summary-box">
+
+                <div class="summary-label">
+                    ร้อยละ
+                </div>
+
+                <div class="summary-value">
+                    ${five.percent}%
+                </div>
+
+            </div>
+
+
+            <div class="summary-box">
+
+                <div class="summary-label">
+                    อันดับ
+                </div>
+
+                <div class="summary-value summary-rank">
+                    ${five.rank}
+                    / ${five.total_students}
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================
+         FOOTER
+    ====================================== -->
+
+    <div class="footer">
+
+        <div>
+            K.W.CENTER | โรงเรียนกวดวิชาแก่นวิทย์
+        </div>
+
+        <div>
+            พิมพ์เมื่อ ${printDate}
+        </div>
+
+    </div>
+
+
+</div>
+
+
+<script>
+
+window.onload = function () {
+
+    setTimeout(
+        function () {
+            window.print();
+        },
+        300
+    );
+
+};
+
+</script>
+
+
+</body>
+
+</html>
+
+`;
+
+
+    /* ---------------------------------------------
+       เปิดหน้าพิมพ์
+    --------------------------------------------- */
+
+    const printWindow =
+        window.open(
+            "",
+            "_blank",
+            "width=900,height=1000"
+        );
+
+
+    if (!printWindow) {
+
+        alert(
+            "เบราว์เซอร์บล็อกหน้าต่างพิมพ์ กรุณาอนุญาต Pop-up สำหรับเว็บไซต์นี้"
+        );
+
+        return;
+    }
+
+
+    printWindow.document.open();
+
+    printWindow.document.write(
+        reportHTML
+    );
+
+    printWindow.document.close();
+
+}
 
 /* =====================================================
    LOADING
