@@ -106,7 +106,7 @@ async function loadExam() {
             data.exam.exam_id;
 
         option.textContent =
-            `${data.exam.name} | ${data.exam.class} | ภาคเรียน ${data.exam.semester}`;
+            `${data.exam.name} | ${data.exam.class} | ภาคเรียน ${data.exam.semester}(ครั้งที่ 1)`;
 
 
         examSelect.appendChild(option);
