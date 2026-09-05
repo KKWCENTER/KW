@@ -1034,6 +1034,10 @@ function printReport() {
 
 <title>
 รายงานผลคะแนน - ${escapeHtml(student.name)}
+<br>1/11 ถนนสถิตยุติธรรม  ต.ในเมือง  อ.เมือง  จ.ขอนแก่น   40000               
+ <br>043-306363, 096-9073863 
+ <br>082-9045050, 094-4711188
+<br>FB : กวดวิชา แก่นวิทย์ , http://www.kw-center.com
 </title>
 
 <style>
