@@ -234,6 +234,7 @@ examSelect.addEventListener("change", function () {
 
     resultSection.innerHTML = "";
     resultSection.classList.add("hidden");
+   searchRequestId++;
 });
 
 
