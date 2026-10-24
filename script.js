@@ -242,68 +242,73 @@ examSelect.addEventListener("change", function () {
    SEARCH STUDENTS
 ===================================================== */
 
-async function searchStudents(
-    keyword
-) {
 
-    const examId =
-        examSelect.value;
+let searchRequestId = 0;
 
+async function searchStudents(keyword) {
+    const examId = examSelect.value;
+    const requestId = ++searchRequestId;
 
-    if (!examId) {
-
+    if (!examId || !keyword.trim()) {
+        students = [];
+        clearSuggestions();
         return;
-
     }
 
-
     try {
-
         const url =
             API_URL +
             "?action=search" +
-            "&name=" +
-            encodeURIComponent(keyword) +
-            "&exam_id=" +
-            encodeURIComponent(examId);
+            "&name=" + encodeURIComponent(keyword.trim()) +
+            "&exam_id=" + encodeURIComponent(examId);
 
+        const response = await fetch(url);
 
-        const response =
-            await fetch(url);
-
-
-        const data =
-            await response.json();
-
-
-        if (!data.success) {
-
-            clearSuggestions();
-
-            return;
-
+        if (!response.ok) {
+            throw new Error("ไม่สามารถเชื่อมต่อ API ได้");
         }
 
+        const data = await response.json();
 
-        students =
-            data.students || [];
+        // ป้องกันผลการค้นหาเก่ามาแสดงทับผลใหม่
+        if (
+            requestId !== searchRequestId ||
+            examId !== examSelect.value ||
+            keyword.trim() !== nameInput.value.trim()
+        ) {
+            return;
+        }
 
+        if (!data.success) {
+            students = [];
+            clearSuggestions();
+            showMessage(
+                data.message || "ไม่สามารถค้นหานักเรียนได้",
+                "error"
+            );
+            return;
+        }
 
-        showSuggestions(
-            students
-        );
+        students = Array.isArray(data.students)
+            ? data.students
+            : [];
 
-    }
+        showSuggestions(students);
 
-    catch (error) {
+    } catch (error) {
+        if (requestId !== searchRequestId) return;
 
         console.error(error);
-
+        students = [];
         clearSuggestions();
 
+        showMessage(
+            "เกิดข้อผิดพลาดในการค้นหานักเรียน",
+            "error"
+        );
     }
-
 }
+
 
 
 /* =====================================================
