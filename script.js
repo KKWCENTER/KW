@@ -65,70 +65,80 @@ document.addEventListener(
    LOAD EXAM
 ===================================================== */
 
+
+/* =====================================================
+   LOAD EXAMS - รองรับหลายสนามสอบ
+===================================================== */
+
 async function loadExam() {
-
     try {
+        showMessage("กำลังโหลดข้อมูลการสอบ...", "");
 
-        showMessage(
-            "กำลังโหลดข้อมูลการสอบ...",
-            ""
+        const response = await fetch(
+            API_URL + "?action=exams"
         );
 
-
-        const response =
-            await fetch(
-                API_URL +
-                "?action=exams"
-            );
-
-
-        const data =
-            await response.json();
-
-
-        if (!data.success) {
-
-            throw new Error(
-                data.message ||
-                "ไม่สามารถโหลดข้อมูลการสอบได้"
-            );
-
+        if (!response.ok) {
+            throw new Error("ไม่สามารถเชื่อมต่อ API ได้");
         }
 
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(
+                data.message || "ไม่สามารถโหลดข้อมูลการสอบได้"
+            );
+        }
+
+        // ใช้รายการสอบทั้งหมดจาก API
+        const exams = Array.isArray(data.exams)
+            ? data.exams
+            : (data.exam ? [data.exam] : []);
+
+        if (exams.length === 0) {
+            throw new Error("ไม่พบรายการสอบ");
+        }
 
         examSelect.innerHTML = "";
 
+        exams.forEach(function(exam) {
+            const option = document.createElement("option");
 
-        const option =
-            document.createElement("option");
+            option.value = exam.exam_id;
 
-        option.value =
-            data.exam.exam_id;
+            if (exam.exam_id === "EX001") {
+                option.textContent =
+                    "การทดสอบวัดระดับ ป.6 | ภาคเรียน 1/2569 (ครั้งที่ 1)";
+            } else if (exam.exam_id === "OCT69") {
+                option.textContent =
+                    "การทดสอบวัดระดับ | คอร์สตุลาคม 2569";
+            } else {
+                option.textContent = [
+                    exam.name,
+                    exam.class,
+                    exam.semester
+                ].filter(Boolean).join(" | ");
+            }
 
-        option.textContent =
-            `${data.exam.name} | ${data.exam.class} | ภาคเรียน ${data.exam.semester}(ครั้งที่ 1)`;
+            examSelect.appendChild(option);
+        });
 
-
-        examSelect.appendChild(option);
-
+        // เลือกการสอบเดิมเป็นค่าเริ่มต้น
+        if (exams.some(exam => exam.exam_id === "EX001")) {
+            examSelect.value = "EX001";
+        }
 
         showMessage("", "");
 
-
-    }
-
-    catch (error) {
-
+    } catch (error) {
         console.error(error);
-
         showMessage(
-            "ไม่สามารถโหลดข้อมูลการสอบได้",
+            "ไม่สามารถโหลดข้อมูลการสอบได้: " + error.message,
             "error"
         );
-
     }
-
 }
+
 
 
 /* =====================================================
@@ -212,24 +222,20 @@ function setupEvents() {
        EXAM CHANGE
     ---------------------------------------------- */
 
-    examSelect.addEventListener(
-        "change",
-        function () {
+   
+examSelect.addEventListener("change", function () {
+    selectedStudent = null;
+    currentResultData = null;
+    students = [];
 
-            selectedStudent = null;
+    nameInput.value = "";
+    clearSuggestions();
+    showMessage("", "");
 
-            students = [];
+    resultSection.innerHTML = "";
+    resultSection.classList.add("hidden");
+});
 
-            clearSuggestions();
-
-            resultSection.classList.add(
-                "hidden"
-            );
-
-        }
-    );
-
-}
 
 
 /* =====================================================
